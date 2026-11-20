@@ -1,0 +1,37 @@
+<div class="project-add">
+  <h2>Add Project</h2>
+  <form [formGroup]="projectForm" (ngSubmit)="onSubmit()" novalidate>
+    <label for="name">Project name (required)</label>
+    <input id="name" type="text" formControlName="name" required>
+    @if (projectForm.controls.name.touched && projectForm.controls.name.invalid) {
+      <p class="error">Enter a project name.</p>
+    }
+
+    <label for="description">Description</label>
+    <textarea id="description" formControlName="description" rows="4"></textarea>
+
+    <label for="startDate">Start date (required)</label>
+    <input id="startDate" type="date" formControlName="startDate" required>
+    @if (projectForm.controls.startDate.touched && projectForm.controls.startDate.invalid) {
+      <p class="error">Enter a valid start date.</p>
+    }
+
+    <label for="endDate">End date</label>
+    <input id="endDate" type="date" formControlName="endDate">
+    @if (projectForm.controls.endDate.touched && projectForm.controls.endDate.hasError('invalidDate')) {
+      <p class="error">Enter a valid end date.</p>
+    }
+    @if (projectForm.hasError('dateOrder') && (projectForm.controls.startDate.touched || projectForm.controls.endDate.touched)) {
+      <p class="error">End date must be after the start date.</p>
+    }
+
+    <button type="submit" [disabled]="saving">{{ saving ? 'Saving…' : 'Create Project' }}</button>
+  </form>
+  @if (successMessage) {
+    <p class="success" role="status">{{ successMessage }}</p>
+  }
+  @if (errorMessage) {
+    <p class="error" role="alert">{{ errorMessage }}</p>
+  }
+  <a routerLink="/">Return home</a>
+</div>

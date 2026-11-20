@@ -18,6 +18,7 @@ const taskSchema = new mongoose.Schema({
   dueDate: Date,
   projectId: { type: Number, required: true }
 }, {
+  versionKey: false,
   timestamps: { createdAt: 'dateCreated', updatedAt: 'dateModified' }
 });
 

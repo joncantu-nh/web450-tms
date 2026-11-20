@@ -14,6 +14,7 @@ const { notFoundHandler, errorHandler } = require('./error-handler');
 
 // Importing the index router
 const indexRouter = require('./routes/index');
+const projectsRouter = require('./routes/projects');
 
 // Variable declaration for the express app
 let app = express();
@@ -34,6 +35,7 @@ app.use(cookieParser());
 
 // Routing configuration
 app.use('/api', indexRouter);
+app.use('/api/projects', projectsRouter);
 
 // Use the error handling middleware
 app.use(notFoundHandler);

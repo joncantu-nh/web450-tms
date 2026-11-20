@@ -1,20 +1,21 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterLink, RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, RouterLink],
   template: `
     <div class="container">
       <header>
-        <h1>Welcome to the MEAN Stack Starter Project</h1>
+        <h1>Welcome to the MEAN Task Management System!</h1>
       </header>
       <nav>
         <ul>
-          <li><a href="#">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="#">Contact</a></li>
+          <li><a routerLink="/">Home</a></li>
+          <li><a routerLink="/projects/add">Add Project</a></li>
+          <li><a routerLink="/about">About</a></li>
+          <li><a routerLink="/contact">Contact</a></li>
         </ul>
       </nav>
       <main>
@@ -23,7 +24,7 @@ import { RouterOutlet } from '@angular/router';
         </section>
       </main>
       <footer>
-        <p>&copy; 2024 MEAN Stack Project</p>
+        <p>&copy; Cantu & Casillas Consulting</p>
       </footer>
     </div>
   `,

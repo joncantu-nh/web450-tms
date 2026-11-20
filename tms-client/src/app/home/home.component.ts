@@ -7,8 +7,7 @@ import { environment } from '../../environments/environment';
   standalone: true,
   imports: [],
   template: `
-    <h2>Main Content</h2>
-    <p>This is a basic layout for your MEAN stack project.</p>
+    <h2>Welcome!</h2>
     <p><strong>Server message:</strong> {{ serverMessage }}</p>
   `,
   styles: ``

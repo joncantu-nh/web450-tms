@@ -5,9 +5,18 @@ const projectSchema = new mongoose.Schema({
   projectId: { type: Number, required: true, unique: true, immutable: true },
   name: { type: String, required: true, trim: true },
   description: String,
-  startDate: Date,
-  endDate: Date
+  startDate: { type: Date, required: true },
+  endDate: {
+    type: Date,
+    validate: {
+      validator(value) {
+        return value == null || value > this.startDate;
+      },
+      message: 'End date must be after the start date.'
+    }
+  }
 }, {
+  versionKey: false,
   timestamps: { createdAt: 'dateCreated', updatedAt: 'dateModified' }
 });
 
