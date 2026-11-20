@@ -1,5 +1,5 @@
 const config = require('../src/utils/config');
-const { mongo } = require('../src/utils/mongo');
+const { mongo, disconnectMongo } = require('../src/utils/mongo');
 
 mongo(async (db) => {
   await db.command({ ping: 1 });
@@ -12,4 +12,4 @@ mongo(async (db) => {
     ? `MongoDB check failed (${error.cause.name}). Check the URI, database user, and Atlas IP access list.`
     : error.cause.message);
   process.exitCode = 1;
-});
+}).finally(disconnectMongo);
