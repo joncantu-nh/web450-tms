@@ -7,9 +7,11 @@ info:
     defines the completed application design, including requests, responses,
     validation rules and error handling. The x-implementation-status extension
     tracks which operations are currently available during development.
+
+    ![TMS REST API flowchart](/api-docs/flowchart.svg)
 servers:
-  - url: http://localhost:3000
-    description: Local development
+  - url: /
+    description: TMS server hosting this specification
 tags:
   - name: Tasks
   - name: Projects

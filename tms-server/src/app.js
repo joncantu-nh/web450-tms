@@ -10,6 +10,10 @@ const express = require('express');
 const createError = require('http-errors');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const fs = require('node:fs');
+const path = require('node:path');
+const yaml = require('js-yaml');
+const swaggerUi = require('swagger-ui-express');
 const { notFoundHandler, errorHandler } = require('./error-handler');
 
 // Importing the index router
@@ -19,7 +23,8 @@ const projectsRouter = require('./routes/projects');
 // Variable declaration for the express app
 let app = express();
 
-// CORS configuration
+// CORS (Cross-Origin Resource Sharing) allows the Angular client on port 4200
+// to access the Express API on port 3000. Different ports are different browser origins.
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*'); // This allows all origins
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS'); // Allowed request methods
@@ -36,6 +41,18 @@ app.use(cookieParser());
 // Routing configuration
 app.use('/api', indexRouter);
 app.use('/api/projects', projectsRouter);
+
+// Serve the same API contract used to generate the TDD flowchart.
+const openapi = yaml.load(fs.readFileSync(path.join(__dirname, '../openapi.yaml'), 'utf8'));
+app.get('/api-docs/openapi.json', (req, res) => res.json(openapi));
+app.get('/api-docs/flowchart.svg', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../docs/TMS_API_Flowchart.svg'));
+});
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(null, {
+  customSiteTitle: 'TMS API Documentation',
+  customCss: '.swagger-ui .info img { max-width: 100%; height: auto; }',
+  swaggerOptions: { url: '/api-docs/openapi.json', showExtensions: true }
+}));
 
 // Use the error handling middleware
 app.use(notFoundHandler);

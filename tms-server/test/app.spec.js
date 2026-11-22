@@ -13,7 +13,38 @@ const { errorHandler } = require('../src/error-handler');
 
 // Test cases
 describe('app.js', () => {
-  // Test the CORS configuration
+  it('serves Swagger UI and the OpenAPI contract', async () => {
+    const ui = await request(app).get('/api-docs/');
+    expect(ui.status).toBe(200);
+    expect(ui.text).toContain('TMS API Documentation');
+    expect(ui.text).toContain('id="swagger-ui"');
+
+    const init = await request(app).get('/api-docs/swagger-ui-init.js');
+    expect(init.status).toBe(200);
+    expect(init.text).toContain('/api-docs/openapi.json');
+
+    const spec = await request(app).get('/api-docs/openapi.json');
+    expect(spec.status).toBe(200);
+    expect(spec.body.openapi).toBe('3.1.0');
+    expect(spec.body.info.description).toContain('![TMS REST API flowchart](/api-docs/flowchart.svg)');
+    expect(spec.body.paths['/api/projects'].post.operationId).toBe('addProject');
+    expect(spec.body.paths['/api/tasks'].post['x-implementation-status']).toBe('planned');
+  });
+
+  it('serves the generated REST API flowchart as an SVG', async () => {
+    const response = await request(app).get('/api-docs/flowchart.svg');
+    expect(response.status).toBe(200);
+    expect(response.headers['content-type']).toMatch(/image\/svg\+xml/);
+    expect((response.text ?? response.body.toString())).toContain('TMS REST API');
+  });
+
+  it('serves Swagger UI browser assets', async () => {
+    const response = await request(app).get('/api-docs/swagger-ui-bundle.js');
+    expect(response.status).toBe(200);
+    expect(response.headers['content-type']).toMatch(/javascript/);
+  });
+
+  // Verify that the API returns the CORS headers needed by the Angular client.
   it('should set CORS headers', async () => {
     const response = await request(app).get('/api');
     expect(response.headers['access-control-allow-origin']).toBe('*');
@@ -33,7 +64,7 @@ describe('app.js', () => {
       next(error);
     });
 
-    // Use the error handling middleware directly
+    // Use the error handling directly
     testApp.use(errorHandler);
 
     const response = await request(testApp).get('/error');

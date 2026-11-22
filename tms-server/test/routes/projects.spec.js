@@ -48,6 +48,7 @@ describe('POST /api/projects', () => {
     expect(mongo).not.toHaveBeenCalled();
   });
 
+  // Verify that the browser can proceed with a cross-origin POST from Angular.
   it('accepts browser CORS preflight requests', async () => {
     const response = await request(app).options('/api/projects')
       .set('Origin', 'http://localhost:4200')

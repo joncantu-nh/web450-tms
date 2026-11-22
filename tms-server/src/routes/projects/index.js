@@ -6,6 +6,8 @@ const { ajv, validateAddProject } = require('../../schemas');
 
 const router = express.Router();
 
+// Browsers send an OPTIONS preflight request before a cross-origin JSON POST.
+// Return 204 to acknowledge it before the browser submits the project data.
 router.options('/', (req, res) => res.sendStatus(204));
 
 router.post('/', async (req, res, next) => {

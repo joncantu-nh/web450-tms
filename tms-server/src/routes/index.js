@@ -19,7 +19,7 @@ const router = express.Router();
  *
  * router.get('/', function(req, res, next) {
  *   res.send({
- *     message: 'Hello from the ETS server!'
+ *     message: 'Hello from the TMS server!'
  *   });
  * });
  *
@@ -30,7 +30,7 @@ const router = express.Router();
  *
  * // Response:
  * // {
- * //   "message": "Hello from the ETS server!"
+ * //   "message": "Hello from the TMS server!"
  * // }
  */
 router.get('/', function(req, res, next) {
