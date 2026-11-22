@@ -2,17 +2,231 @@ openapi: 3.1.0
 info:
   title: Task Management System API
   version: 1.0.0
+  description: |
+    WEB450 TMS target API contract (Version 2, teams of two). This specification
+    defines the completed application design, including requests, responses,
+    validation rules and error handling. The x-implementation-status extension
+    tracks which operations are currently available during development.
+servers:
+  - url: http://localhost:3000
+    description: Local development
+tags:
+  - name: Tasks
+  - name: Projects
+  - name: System
 paths:
+  /api:
+    get:
+      tags: [System]
+      operationId: getServerMessage
+      summary: Get the server welcome message
+      x-implementation-status: implemented
+      responses:
+        '200':
+          description: Server welcome message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: Hello from the Task Management System server!
+  /api/tasks:
+    post:
+      tags: [Tasks]
+      operationId: addTask
+      summary: Create a task
+      description: The server generates taskId and timestamps. Task titles must be unique and projectId must reference an existing project.
+      x-implementation-status: planned
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddTask'
+            example:
+              title: Complete project documentation
+              description: Write the technical design document
+              status: Pending
+              priority: High
+              dueDate: '2026-12-01'
+              projectId: 1000
+      responses:
+        '201':
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskMutationResponse'
+              example:
+                message: Task created successfully
+                taskId: 1000
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Associated project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                type: error
+                status: 404
+                message: Project not found
+        '409':
+          $ref: '#/components/responses/DuplicateTitle'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    get:
+      tags: [Tasks]
+      operationId: listTasks
+      summary: List or search tasks
+      description: |
+        Return all tasks if filters are omitted. Search by task title, due date,
+        or both when query parameters are supplied. A title filter performs
+        a case-insensitive substring match. A due-date filter matches the UTC
+        calendar date. When both filters are supplied, both must match.
+        An empty result is an empty array.
+      x-implementation-status: planned
+      x-use-cases:
+        - summary: List all tasks
+        - summary: Search tasks
+          query: taskTitle, taskDueDate
+      parameters:
+        - name: taskTitle
+          in: query
+          description: Task title to search for
+          schema:
+            type: string
+            minLength: 1
+            pattern: '\S'
+          example: documentation
+        - name: taskDueDate
+          in: query
+          description: Task due date to search for
+          schema:
+            $ref: '#/components/schemas/CalendarDate'
+          example: '2026-12-01'
+      responses:
+        '200':
+          description: Matching tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+              examples:
+                matchingTasks:
+                  $ref: '#/components/examples/TaskListExample'
+                noMatches:
+                  value: []
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/tasks/{id}:
+    parameters:
+      - $ref: '#/components/parameters/TaskRecordId'
+    get:
+      tags: [Tasks]
+      operationId: getTask
+      summary: Read a task by ID
+      x-implementation-status: planned
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+              examples:
+                task:
+                  $ref: '#/components/examples/TaskExample'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/TaskNotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    patch:
+      tags: [Tasks]
+      operationId: updateTask
+      summary: Update a task
+      description: Update supplied fields only. The server updates dateModified. IDs and creation timestamps are immutable.
+      x-implementation-status: planned
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTask'
+            example:
+              status: In Progress
+              priority: Medium
+      responses:
+        '200':
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskMutationResponse'
+              example:
+                message: Task updated successfully
+                taskId: 1000
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Task or associated project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                type: error
+                status: 404
+                message: Task or associated project not found
+        '409':
+          $ref: '#/components/responses/DuplicateTitle'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      tags: [Tasks]
+      operationId: deleteTask
+      summary: Delete a task
+      x-implementation-status: planned
+      responses:
+        '200':
+          description: Task deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: Task deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/TaskNotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /api/projects:
     post:
+      tags: [Projects]
       operationId: addProject
       summary: Create a project
+      description: Generates projectId automatically and records the creation and modification timestamps.
+      x-implementation-status: implemented
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/AddProject'
+            example:
+              name: TMS Project
+              description: Build a project and task management system.
+              startDate: '2026-11-19'
+              endDate: '2026-12-20'
       responses:
         '201':
           description: Project created
@@ -20,12 +234,222 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AddProjectResponse'
+              example:
+                message: Project created successfully
+                projectId: 1000
         '400':
-          description: Invalid project data
+          $ref: '#/components/responses/BadRequest'
         '500':
-          description: Database or server error
+          $ref: '#/components/responses/ServerError'
+    get:
+      tags: [Projects]
+      operationId: listProjects
+      summary: List all projects
+      x-implementation-status: planned
+      responses:
+        '200':
+          description: Project list (empty array if no projects exist)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+              examples:
+                projects:
+                  $ref: '#/components/examples/ProjectListExample'
+                empty:
+                  value: []
+        '500':
+          $ref: '#/components/responses/ServerError'
 components:
+  parameters:
+    TaskRecordId:
+      name: id
+      in: path
+      required: true
+      description: MongoDB native task _id, serialized as a hexadecimal string. The numeric taskId is a separate display identifier.
+      schema:
+        $ref: '#/components/schemas/ObjectId'
+      example: 6aff9f336da5f7f275eb1d38
+  responses:
+    BadRequest:
+      description: Invalid request data or identifier
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: error
+            status: 400
+            message: Invalid request data
+    TaskNotFound:
+      description: Task not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: error
+            status: 404
+            message: Task not found
+    DuplicateTitle:
+      description: A task with the supplied title already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: error
+            status: 409
+            message: A task with that title already exists
+    ServerError:
+      description: Database or server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: error
+            status: 500
+            message: MongoDB operation failed.
+  examples:
+    TaskExample:
+      summary: Task document
+      value: &taskExample
+        _id: 6aff9f336da5f7f275eb1d38
+        taskId: 1000
+        title: Complete project documentation
+        description: Write the technical design document
+        status: Pending
+        priority: High
+        dueDate: '2026-12-01T00:00:00.000Z'
+        projectId: 1000
+        dateCreated: '2026-11-19T15:00:00.000Z'
+        dateModified: '2026-11-19T15:00:00.000Z'
+    TaskListExample:
+      summary: Matching task documents
+      value:
+        - *taskExample
+    ProjectListExample:
+      summary: Project documents
+      value:
+        - _id: 6aff9f336da5f7f275eb1d37
+          projectId: 1000
+          name: TMS Project
+          description: Build a project and task management system.
+          startDate: '2026-11-19T00:00:00.000Z'
+          endDate: '2026-12-20T00:00:00.000Z'
+          dateCreated: '2026-11-19T14:00:00.000Z'
+          dateModified: '2026-11-19T14:00:00.000Z'
   schemas:
+    ObjectId:
+      type: string
+      pattern: '^[0-9a-fA-F]{24}$'
+    SequentialId:
+      type: integer
+      minimum: 1000
+      description: Numeric identifier generated from the independent MongoDB counter for the collection.
+      example: 1000
+    CalendarDate:
+      type: string
+      format: date
+    Message:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+    Error:
+      type: object
+      required: [type, status, message]
+      properties:
+        type:
+          type: string
+          const: error
+        status:
+          type: integer
+        message:
+          type: string
+        stack:
+          type: string
+          description: Present in development mode only
+    AddTask:
+      type: object
+      required: [title, status, priority, projectId]
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          pattern: '\S'
+          description: Unique task title
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+        dueDate:
+          $ref: '#/components/schemas/ProjectDate'
+        projectId:
+          $ref: '#/components/schemas/SequentialId'
+    UpdateTask:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          pattern: '\S'
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+        dueDate:
+          $ref: '#/components/schemas/ProjectDate'
+        projectId:
+          $ref: '#/components/schemas/SequentialId'
+    Task:
+      type: object
+      required: [_id, taskId, title, status, priority, projectId, dateCreated, dateModified]
+      properties:
+        _id:
+          $ref: '#/components/schemas/ObjectId'
+          readOnly: true
+        taskId:
+          $ref: '#/components/schemas/SequentialId'
+          readOnly: true
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+        dueDate:
+          type: string
+          format: date-time
+        projectId:
+          $ref: '#/components/schemas/SequentialId'
+        dateCreated:
+          type: string
+          format: date-time
+          readOnly: true
+        dateModified:
+          type: string
+          format: date-time
+          readOnly: true
+    TaskMutationResponse:
+      type: object
+      required: [message, taskId]
+      properties:
+        message:
+          type: string
+        taskId:
+          $ref: '#/components/schemas/SequentialId'
     AddProject:
       type: object
       required: [name, startDate]
@@ -54,7 +478,35 @@ components:
         message:
           type: string
         projectId:
-          type: integer
+          $ref: '#/components/schemas/SequentialId'
+    Project:
+      type: object
+      required: [_id, projectId, name, startDate, dateCreated, dateModified]
+      properties:
+        _id:
+          $ref: '#/components/schemas/ObjectId'
+          readOnly: true
+        projectId:
+          $ref: '#/components/schemas/SequentialId'
+          readOnly: true
+        name:
+          type: string
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        dateCreated:
+          type: string
+          format: date-time
+          readOnly: true
+        dateModified:
+          type: string
+          format: date-time
+          readOnly: true
     TaskStatus:
       type: string
       enum:
