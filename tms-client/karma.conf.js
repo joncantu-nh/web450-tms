@@ -26,7 +26,7 @@ module.exports = function (config) {
       suppressAll: true // removes the duplicated traces
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/ets-client'),
+      dir: require('path').join(__dirname, './coverage/tms-client'),
       subdir: '.',
       reporters: [
         { type: 'html' },

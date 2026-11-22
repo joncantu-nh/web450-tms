@@ -9,11 +9,13 @@ import { environment } from '../../environments/environment';
   template: `
     <h2>Welcome!</h2>
     <p><strong>Server message:</strong> {{ serverMessage }}</p>
+    <p><a [href]="apiHelpUrl" target="_blank" rel="noopener">API Help</a></p>
   `,
   styles: ``
 })
 export class HomeComponent {
   serverMessage: string;
+  readonly apiHelpUrl = `${environment.apiBaseUrl}/api-docs/`;
 
   constructor(private http: HttpClient) {
     this.serverMessage = '';

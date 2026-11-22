@@ -59,5 +59,5 @@ import { RouterLink, RouterOutlet } from '@angular/router';
   `
 })
 export class AppComponent {
-  title = 'ets-client';
+  title = 'tms-client';
 }
